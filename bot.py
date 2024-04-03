@@ -5,8 +5,6 @@ from discord import is_nsfw
 import discord
 from discord.ext import commands
 import requests
-import os
-import discord_webhook
 
 def started():
     now = datetime.datetime.now().strftime('%I:%M %p')
