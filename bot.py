@@ -22,7 +22,7 @@ def started():
     response = requests.post(webhook_url, json=payload, headers=headers)
 started()
 
-TOKEN = 'token'
+TOKEN = 'TOKEN'
 
 intents = discord.Intents.default()
 intents.dm_messages = True
@@ -78,7 +78,7 @@ class View1(discord.ui.View):
     @discord.ui.button(label="Would you lose?", style=discord.ButtonStyle.primary, emoji="🐈")
     async def button_callback(self, button, interaction):
         embed = discord.Embed(title="Nah, I'd win.", color=discord.Color.blue())
-        embed.add_field(name=":3", value="<:x3:1224845183699517495><:x3:1224845183699517495>", inline=False)
+        embed.add_field(value="<a:x3:1224845183699517495><a:x3:1224845183699517495>", inline=False)
         await interaction.response.send_message(embed=embed)
         await people_events(f"Button pressed in <#{interaction.channel.id}> ({interaction.guild.name}, {interaction.guild.id})")
         
@@ -99,9 +99,7 @@ async def on_ready():
 
 @bot.slash_command(name="niw", description="type shit")
 async def niw(ctx):
-    embed = discord.Embed(title="Test", color=discord.Color.blue())
-    embed.add_field(name="Hello world!", value="yo mama x3", inline=False)
-    await ctx.respond(embed=embed, view=View1())
+    await ctx.respond(view=View1())
     await people_events(f"{ctx.author.name}({ctx.author.id}) ran `niw` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")
 
 @bot.slash_command(name="help", description="command list")
