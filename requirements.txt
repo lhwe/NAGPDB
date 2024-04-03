@@ -1,0 +1,6 @@
+time
+asyncio
+datetime
+pycord
+py-cord
+requests
