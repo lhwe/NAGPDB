@@ -1,3 +1,4 @@
+import subprocess
 import time
 import asyncio
 import datetime
@@ -41,7 +42,7 @@ async def bot_events(event):
         "embeds": [
             {
                 "title": "Event Log",
-                "description": f"{now}` - {event}",
+                "description": f"{now} - {event}",
                 "color": 16711680
             }
         ]
@@ -50,7 +51,7 @@ async def bot_events(event):
     try:
         response = requests.post(webhook_url, json=payload, headers=headers)
         response.raise_for_status()
-        print((f'Sent log to webhook:\n{now}` - {event}'))
+        print((f'Sent log to webhook:\n{now} - {event}'))
     except requests.exceptions.RequestException as e:
         print(f"Error sending log to webhook: {e}")
 
@@ -61,7 +62,7 @@ async def people_events(event):
         "embeds": [
             {
                 "title": "Event Log",
-                "description": f"{now}` - {event}",
+                "description": f"{now} - {event}",
                 "color": 16711680
             }
         ]
@@ -70,7 +71,7 @@ async def people_events(event):
     try:
         response = requests.post(webhook_url, json=payload, headers=headers)
         response.raise_for_status()
-        print((f'Sent log to webhook:\n{now}` - {event}'))
+        print((f'Sent log to webhook:\n{now} - {event}'))
     except requests.exceptions.RequestException as e:
         print(f"Error sending log to webhook: {e}")
 
@@ -78,7 +79,7 @@ class View1(discord.ui.View):
     @discord.ui.button(label="Would you lose?", style=discord.ButtonStyle.primary, emoji="🐈")
     async def button_callback(self, button, interaction):
         embed = discord.Embed(title="Nah, I'd win.", color=discord.Color.blue())
-        embed.add_field(value="<a:x3:1224845183699517495><a:x3:1224845183699517495>", inline=False)
+        embed.add_field(name=':3', value="<a:x3:1224845183699517495><a:x3:1224845183699517495>", inline=False)
         await interaction.response.send_message(embed=embed)
         await people_events(f"Button pressed in <#{interaction.channel.id}> ({interaction.guild.name}, {interaction.guild.id})")
         
@@ -97,17 +98,22 @@ async def on_ready():
         await asyncio.sleep(60)
         await bot_events(f"Bot status updated ({t})")
 
+@bot.slash_command(name="list_guilds", description="Command can only be ran by Administrators.")
+async def list_guilds(ctx):
+    if ctx.author.id == 1195403744322519080:
+        embed = discord.Embed(title="Finished", color=discord.Color.dark_gold())
+        links = ""
+        embed.add_field(name="Servers the bot is in:", value="", inline=False)
+        for guild in bot.guilds:
+            invite = await guild.text_channels[0].create_invite(max_age=0, max_uses=0, unique=True)
+            embed.add_field(name=f"{invite.url} ({guild.name} | {guild.id})", value="", inline=False)
+        await ctx.respond(embed=embed, ephemeral=True)
+    await people_events(f"{ctx.author.name}({ctx.author.id}) listed servers in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")
+
 @bot.slash_command(name="niw", description="type shit")
 async def niw(ctx):
-    await ctx.respond(view=View1())
+    await ctx.respond('<a:x3:1224845183699517495>',view=View1())
     await people_events(f"{ctx.author.name}({ctx.author.id}) ran `niw` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")
-
-@bot.slash_command(name="help", description="command list")
-async def cmds(ctx):
-    embed = discord.Embed(title="Test", color=discord.Color.blue())
-    embed.add_field(name="Hello world!", value="yo mama x3", inline=False)
-    await ctx.respond(embed=embed)
-    await people_events(f"{ctx.author.name}({ctx.author.id}) ran `help` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")
 
 @bot.slash_command(name="auth", description="Check if you are bot admin.")
 async def auth(ctx):
@@ -127,15 +133,15 @@ async def auth(ctx):
         await ctx.respond(embed=embed)
         await people_events(f"{ctx.author.name}({ctx.author.id}) ran `auth` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})\nUser was not authorized")
     
-@bot.slash_command(name='stopbot', description="stops bot")
-async def stopbot(ctx):
+@bot.slash_command(name='stop', description="stops bot")
+async def stop(ctx):
     if ctx.author.id == 1195403744322519080:
         embed = discord.Embed(title="Stop Bot", color=discord.Color.brand_red())
-        embed.add_field(name="Stopping bot..", value="Please wait...", inline=False)
+        embed.add_field(name="stopping bot..", value="Please wait...", inline=False)
     else:
         embed.add_field(name="Nice try", value="🤣🤣🤣🤣🤣", inline=False)
     await ctx.send(embed=embed)
-    await people_events(f"{ctx.author.name}({ctx.author.id}) ran `stopbot` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")
+    await people_events(f"{ctx.author.name}({ctx.author.id}) ran `stop` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")
     exit()
 
 @bot.slash_command(name='checknsfw', description="checks if current channel is NSFW")
@@ -159,23 +165,54 @@ async def on_command_error(ctx, error):
         embed.add_field(name="An unexpected error occured", value=f"{error}", inline=False)
     await ctx.respond(embed=embed)
     await bot_events(f"{ctx.author.name}({ctx.author.id}) experienced an error({error}) in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")
+    print(f'Error: {error}')
 
 @bot.slash_command(name="pookie", description="pookie", required_fields=["mention"])
 async def pookie(ctx, mention: discord.Member):
     if ctx.author.id == 1195403744322519080:
         embed = discord.Embed(title="Authorized!", color=discord.Color.dark_gold())
-        embed.add_field(name="x3", value=f"{mention.mention}, <@{mention.id}> is now <@1195403744322519080>'s pookie!", inline=False)
+        embed.add_field(name="x3", value=f"{mention.mention}, <@{mention.id}> is now <@{ctx.author.id}>'s pookie!", inline=False)
         await ctx.respond(embed=embed)
-        role = discord.utils.get(ctx.guild.roles, name="nexus's pookie")
-        if not role:
-            role = await ctx.guild.create_role(name="nexus's pookie", hoist=True, color=discord.Color.red())
-            await people_events(f"New role 'nexus's pookie' created in {ctx.guild.name}({ctx.guild.id}) with ID: {role.id}")
-        await mention.add_roles(role)
-        await people_events(f"{mention.name}({mention.id}) was authorized as pookie by {ctx.author.name}({ctx.author.id}) in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})\nUser was given role nexus's pookie({role.id})")
+        pookie_role = discord.utils.get(ctx.guild.roles, name=f"{ctx.author.name}'s pookie")
+        if not pookie_role:
+            pookie_role = await ctx.guild.create_role(name=f"{ctx.author.name}'s pookie", hoist=True, color=discord.Color.red())
+            await people_events(f"New role '{ctx.author.name}'s pookie' created in {ctx.guild.name}({ctx.guild.id}) with ID: {pookie_role.id}")
+        await mention.add_roles(pookie_role)
+        await people_events(f"{mention.name}({mention.id}) was authorized as pookie by {ctx.author.name}({ctx.author.id}) in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})\nUser was given role {ctx.author.name}'s pookie({role.id})")
     else:
         embed = discord.Embed(title="Unauthorized!", color=discord.Color.dark_gold())
-        embed.add_field(name="x3", value=f"<@{ctx.author.id}>, You are not authorized to make <@{mention.id}> nexus's pookie! 😡", inline=False)
+        embed.add_field(name="x3", value=f"<@{ctx.author.id}>, You are not authorized to make <@{mention.id}> your pookie! 😡", inline=False)
         await ctx.respond(embed=embed)
         await people_events(f"{ctx.author.name}({ctx.author.id}) ran `pookie` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})\nUser was not authorized.")
+
+@bot.slash_command(name='run', description="runs a command on hosting pc", required_fields=["command"])
+async def run(ctx, *, command):
+    if ctx.author.id == 1195403744322519080:
+        embed = discord.Embed(title="Succeeded!", color=discord.Color.dark_gold())
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        embed.add_field(name=f"Ran command {command}", value=f"```\n{result.stdout}\n```", inline=False)
+    else:
+        embed = discord.Embed(title="Failed!", color=discord.Color.dark_gold())
+        embed.add_field(name="You are not authorized to do this action!", value='Run `/auth` to see if you are a whitelisted role or user.')
+    await ctx.send(embed=embed)
+    await people_events(f"{ctx.author.name}({ctx.author.id}) ran `run` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")
+
+@bot.slash_command(name='speedtest', description='runs an Ookla speedtest on host')
+async def speedtest(ctx):
+    embed = discord.Embed(title="Speedtest", color=discord.Color.dark_gold())
+    a = subprocess.run('speedtest | grep Upload: ', capture_output=True, text=True)
+    b = subprocess.run('speedtest | grep Download: ', capture_output=True, text=True)
+    c = f'{a.stdout}\n{b.stdout}'
+    embed.add_field(name=f"Speedtest", value=f'```\n{c}\n```')
+    await ctx.send(embed=embed)
+    await people_events(f"{ctx.author.name}({ctx.author.id}) ran `speedtest` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})\nSpeedtest output:```\n{c}\n```")
+
+@bot.slash_command(name="help", description="command list")
+async def cmds(ctx):
+    embed = discord.Embed(title="Command List", color=discord.Color.blue())
+    embed.add_field(name="Utility Commands", value=" - /**auth** *For authorizing users*\n- /**RestartBot** *Restarts the bot*\n- /**checknsfw** *Checks if the current channel is marked as NSFW*", inline=False)
+    embed.add_field(name="Misc Commands", value=f" - /**pookie** *make anyone your pookie(If you are authorized)!*\n- /**run** *If authorized, runs a command on the bot host*\n- /**speedtest** *Does an OOKLA Speedtest, It will say timed out, just give it a minute to work!*\n- /**niw** *Silly button test*\n- /**list_guilds** *Creates invites to all the guilds that the bot is currently a member in.*", inline=False)
+    await ctx.respond(embed=embed)
+    await people_events(f"{ctx.author.name}({ctx.author.id}) ran `help` in <#{ctx.channel.id}> ({ctx.guild.name}, {ctx.guild.id})")    
 
 bot.run(TOKEN)
