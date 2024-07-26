@@ -5,4 +5,4 @@ Secretly just another general purpose discord bot
 Put token and webhook url's into their respective places, then run `pip install -r requirements.txt`, then `python bot.py`
 
 # NOTE:
-To use this, you have to first uninstall all discord.py libraries for the code to work.
+This uses pycord, see py-cord.dev
